@@ -1,5 +1,6 @@
 -- Create table
 /*
+commented by gaotc 20161104
 create table dept_rowscn
 (
   deptno,
