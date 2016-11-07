@@ -36,6 +36,7 @@ public class OpaqueTridentKafkaSpoutTest {
 	public static final Logger LOG = LoggerFactory.getLogger(OpaqueTridentKafkaSpoutTest.class);
 
 	private StormTopology buildTopology() {
+		//added commented for Git commition testing! 201611071641
 		// kafka配置文件参数: zookeeper.connect
 		String brokerZkStr = "172.28.6.41:2181,172.28.6.42:2181,172.28.6.43:2181";
 		String brokerZkPath = "/brokers";
