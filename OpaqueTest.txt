@@ -1,4 +1,5 @@
-//kafka²âÊÔ³ÌĞò
+//modified at 2016/12/02
+//kafkaæµ‹è¯•ç¨‹åº
 package com.stmSyswin.topology;
 
 import java.util.ArrayList;
@@ -34,24 +35,24 @@ import backtype.storm.spout.SchemeAsMultiScheme;
 import backtype.storm.tuple.Fields;
 
 
-//kafak¿Í»§¶Ë²âÊÔ
+//kafakå®¢æˆ·ç«¯æµ‹è¯•
 public class OpaqueTridentKafkaSpoutTest {
 	public static final Logger LOG = LoggerFactory.getLogger(OpaqueTridentKafkaSpoutTest.class);
 
 	private StormTopology buildTopology() {
-		// kafkaÅäÖÃÎÄ¼ş²ÎÊı: zookeeper.connect
+		// kafkaé…ç½®æ–‡ä»¶å‚æ•°: zookeeper.connect
 		String brokerZkStr = "172.28.6.41:2181,172.28.6.42:2181,172.28.6.43:2181";
 		String brokerZkPath = "/brokers";
 		ZkHosts zkHosts = new ZkHosts(brokerZkStr, brokerZkPath);
 
-		// kafak¿Í»§¶Ë½«offset»ã±¨µÄzk¼¯Èº
+		// kafakå®¢æˆ·ç«¯å°†offsetæ±‡æŠ¥çš„zké›†ç¾¤
 		List<String> zkServersList = new ArrayList<String>();
 		zkServersList.add("172.28.6.41");
 		zkServersList.add("172.28.6.42");
 		zkServersList.add("172.28.6.43");
 		String offsetZkPort = "2181";
 
-		// kafka¶©ÔÄµÄtopicÃû³Æ
+		// kafkaè®¢é˜…çš„topicåç§°
 		String topic = "web_toon_businessAPI_cardV26_apiUserLogs_Card";
 
 		// -----2015/10/14 begin
