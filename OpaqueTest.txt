@@ -1,3 +1,4 @@
+//modified at 2016/12/02
 package com.stmSyswin.topology;
 
 import java.util.ArrayList;
@@ -36,19 +37,19 @@ public class OpaqueTridentKafkaSpoutTest {
 	public static final Logger LOG = LoggerFactory.getLogger(OpaqueTridentKafkaSpoutTest.class);
 
 	private StormTopology buildTopology() {
-		// kafka配置文件参数: zookeeper.connect
+		// kafka閰嶇疆鏂囦欢鍙傛暟: zookeeper.connect
 		String brokerZkStr = "172.28.6.41:2181,172.28.6.42:2181,172.28.6.43:2181";
 		String brokerZkPath = "/brokers";
 		ZkHosts zkHosts = new ZkHosts(brokerZkStr, brokerZkPath);
 
-		// kafak客户端将offset汇报的zk集群
+		// kafak瀹㈡埛绔皢offset姹囨姤鐨剒k闆嗙兢
 		List<String> zkServersList = new ArrayList<String>();
 		zkServersList.add("172.28.6.41");
 		zkServersList.add("172.28.6.42");
 		zkServersList.add("172.28.6.43");
 		String offsetZkPort = "2181";
 
-		// kafka订阅的topic名称
+		// kafka璁㈤槄鐨則opic鍚嶇О
 		String topic = "web_toon_businessAPI_cardV26_apiUserLogs_Card";
 
 		// -----2015/10/14 begin
