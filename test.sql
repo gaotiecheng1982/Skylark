@@ -3,6 +3,9 @@
 
 --br201611281645 before rebase
 
+
+--br201611281645 before rebase 2222222
+
 -- Create table
 /*
 create table dept_rowscn
