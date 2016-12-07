@@ -1,3 +1,5 @@
+--br201611281645 before rebase
+
 -- Create table
 /*
 create table dept_rowscn

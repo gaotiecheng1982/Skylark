@@ -1,0 +1,123 @@
+<<<<<<< HEAD
+//kafka≤‚ ‘≥Ã–Ú
+=======
+//modified at 2016/12/02
+>>>>>>> 858cfbc36ec7a903c311787bc22373474ebe7557
+package com.stmSyswin.topology;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
+
+import org.apache.storm.guava.collect.Lists;
+import org.apache.storm.guava.collect.Maps;
+import org.apache.storm.jdbc.common.Column;
+import org.apache.storm.jdbc.common.ConnectionProvider;
+import org.apache.storm.jdbc.common.HikariCPConnectionProvider;
+import org.apache.storm.jdbc.mapper.JdbcMapper;
+import org.apache.storm.jdbc.mapper.SimpleJdbcMapper;
+import org.apache.storm.jdbc.trident.state.JdbcState;
+import org.apache.storm.jdbc.trident.state.JdbcStateFactory;
+import org.apache.storm.jdbc.trident.state.JdbcUpdater;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import storm.kafka.StringScheme;
+import storm.kafka.ZkHosts;
+import storm.kafka.trident.OpaqueTridentKafkaSpout;
+import storm.kafka.trident.TridentKafkaConfig;
+import storm.trident.Stream;
+import storm.trident.TridentTopology;
+import storm.trident.state.StateUpdater;
+import backtype.storm.Config;
+import backtype.storm.LocalCluster;
+import backtype.storm.StormSubmitter;
+import backtype.storm.generated.StormTopology;
+import backtype.storm.spout.SchemeAsMultiScheme;
+import backtype.storm.tuple.Fields;
+
+
+//kafakøÕªß∂À≤‚ ‘
+public class OpaqueTridentKafkaSpoutTest {
+	public static final Logger LOG = LoggerFactory.getLogger(OpaqueTridentKafkaSpoutTest.class);
+
+	private StormTopology buildTopology() {
+		// kafkaÈÖçÁΩÆÊñá‰ª∂ÂèÇÊï∞: zookeeper.connect
+		String brokerZkStr = "172.28.6.41:2181,172.28.6.42:2181,172.28.6.43:2181";
+		String brokerZkPath = "/brokers";
+		ZkHosts zkHosts = new ZkHosts(brokerZkStr, brokerZkPath);
+
+		// kafakÂÆ¢Êà∑Á´ØÂ∞ÜoffsetÊ±áÊä•ÁöÑzkÈõÜÁæ§
+		List<String> zkServersList = new ArrayList<String>();
+		zkServersList.add("172.28.6.41");
+		zkServersList.add("172.28.6.42");
+		zkServersList.add("172.28.6.43");
+		String offsetZkPort = "2181";
+
+		// kafkaËÆ¢ÈòÖÁöÑtopicÂêçÁß∞
+		String topic = "web_toon_businessAPI_cardV26_apiUserLogs_Card";
+
+		// -----2015/10/14 begin
+		TridentTopology tridentTopology = new TridentTopology();
+		TridentKafkaConfig spoutConf = new TridentKafkaConfig(zkHosts, topic);
+		spoutConf.scheme = new SchemeAsMultiScheme(new StringScheme());
+		OpaqueTridentKafkaSpout opaqueTridentKafkaSpout = new OpaqueTridentKafkaSpout(spoutConf);
+		Stream opTrdtSptStream = tridentTopology.newStream("opTrdtSptStream", opaqueTridentKafkaSpout);
+
+		// -------
+		// defining the jdbc connection
+		Map hikariConfigMap = Maps.newHashMap();
+		hikariConfigMap.put("dataSourceClassName", "com.mysql.jdbc.jdbc2.optional.MysqlDataSource");
+		hikariConfigMap.put("dataSource.url", "jdbc:mysql://localhost/test");
+		hikariConfigMap.put("dataSource.user", "root");
+		hikariConfigMap.put("dataSource.password", "");
+		ConnectionProvider connectionProvider = new HikariCPConnectionProvider(hikariConfigMap);
+		String tableName = "storm_msgs_web_toon_businessAPI_cardV26_apiUserLogs_Card";
+
+		// defining columns
+		// List<Column> columnSchema = Lists.newArrayList(new Column("user_id", java.sql.Types.INTEGER), new Column("user_name", java.sql.Types.VARCHAR), new Column("dept_name",
+		// java.sql.Types.VARCHAR));
+		List<Column> columnSchema = Lists.newArrayList(new Column("str", java.sql.Types.VARCHAR));
+		JdbcMapper simpleJdbcMapper = new SimpleJdbcMapper(columnSchema);
+
+		// create a new jdbcStateFactory with columns
+		JdbcState.Options options = new JdbcState.Options().withConnectionPrvoider(connectionProvider).withMapper(simpleJdbcMapper).withTableName(tableName).withQueryTimeoutSecs(30);
+		JdbcStateFactory jdbcStateFactory = new JdbcStateFactory(options);
+		StateUpdater updater = new JdbcUpdater();
+		// -------
+		// partitionPersist(stateFactory, updater, new Fields());
+		// partitionPersist(StateFactory stateFactory, Fields inputFields, StateUpdater updater)
+		opTrdtSptStream.shuffle().each(new Fields("str"), new Utils.PrintFilter()).partitionPersist(jdbcStateFactory, new Fields("str"), updater);
+		// opTrdtSptStream.shuffle().each(new Fields("str"), new Utils.PrintFilter());
+		return tridentTopology.build();
+		// -----2015/10/14 end
+	}
+
+	public static void main(String[] args) throws Exception {
+		OpaqueTridentKafkaSpoutTest kafkaSpoutTestTopology = new OpaqueTridentKafkaSpoutTest();
+		Config config = new Config();
+		config.put(Config.TOPOLOGY_TRIDENT_BATCH_EMIT_INTERVAL_MILLIS, 2000);
+		StormTopology stormTopology = kafkaSpoutTestTopology.buildTopology();
+
+		if (args != null && args.length > 1) {
+			String name = args[1];
+			String dockerIp = args[2];
+			config.setNumWorkers(3);
+			config.setMaxTaskParallelism(5);
+			config.put(Config.NIMBUS_HOST, "svr-zk01");
+			config.put(Config.NIMBUS_THRIFT_PORT, 6627);
+			config.put(Config.STORM_ZOOKEEPER_PORT, 2181);
+			config.put(Config.STORM_ZOOKEEPER_SERVERS, Arrays.asList(new String[] { "svr-zk01", "svr-zk02", "svr-zk03" }));
+			StormSubmitter.submitTopology("OpaqueTridentKafkaSpoutTest", config, stormTopology);
+		} else {
+			// config.setNumWorkers(2);
+			// config.setMaxTaskParallelism(2);
+			LocalCluster cluster = new LocalCluster();
+			cluster.submitTopology("OpaqueTridentKafkaSpoutTest", config, stormTopology);
+			Thread.sleep(200000);
+			cluster.shutdown();
+		}
+	}
+
+}
